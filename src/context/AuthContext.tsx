@@ -19,17 +19,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const login = async (email: string, password: string) => {
-    // Mock login - Replace with actual API call
-    if (email === 'admin@example.com' && password === 'password') {
-      const userData = {
-        id: '1',
-        email,
-        name: 'Admin User',
-        role: 'admin'
-      };
-      setUser(userData);
-      localStorage.setItem(AUTH_KEY, JSON.stringify(userData));
+  const login = async (user: string, password: string) => {
+    // Llamada a la API para verificar las credenciales
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users`);
+    const users = await response.json();
+  
+    const userData = users.find((userData: { user: string; pass: string; rol: string }) => 
+      userData.user === user && userData.pass === password
+    );
+  
+    if (userData) {
+      const { id, nombre, rol } = userData;
+      setUser({ id, email: user, name: nombre, role: rol });
+      localStorage.setItem(AUTH_KEY, JSON.stringify({ id, email: user, name: nombre, role: rol }));
     } else {
       throw new Error('Invalid credentials');
     }
