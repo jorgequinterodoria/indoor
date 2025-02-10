@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (user: string, password: string) => {
     // Llamada a la API para verificar las credenciales
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users`);
+    const response = await fetch(`https://indoor-api.onrender.com/api/users`);
     const users = await response.json();
   
     const userData = users.find((userData: { user: string; pass: string; rol: string }) => 
