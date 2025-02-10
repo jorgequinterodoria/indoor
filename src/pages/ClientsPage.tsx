@@ -1,34 +1,81 @@
+import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Plus, Search } from 'lucide-react';
 
-const clients = [
-  { 
-    id: '1', 
-    name: 'John Doe', 
-    email: 'john@example.com',
-    phone: '+1234567890',
-    membershipStatus: 'active',
-    bikes: 2
-  },
-  { 
-    id: '2', 
-    name: 'Jane Smith', 
-    email: 'jane@example.com',
-    phone: '+1234567891',
-    membershipStatus: 'active',
-    bikes: 1
-  },
-  { 
-    id: '3', 
-    name: 'Mike Johnson', 
-    email: 'mike@example.com',
-    phone: '+1234567892',
-    membershipStatus: 'inactive',
-    bikes: 3
-  },
-];
+interface Client {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  membershipStatus: 'Activo' | 'Inactivo';
+}
 
 export function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', membershipStatus: 'Activo' });
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const response = await fetch('https://indoor-api.onrender.com/api/clients');
+      const data: Client[] = await response.json();
+      setClients(data);
+    };
+
+    fetchClients();
+  }, []);
+
+  const handleAddClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const method = selectedClient ? 'PUT' : 'POST';
+    const url = selectedClient 
+      ? `https://indoor-api.onrender.com/api/clients/${selectedClient.id}` 
+      : 'https://indoor-api.onrender.com/api/clients';
+
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newClient),
+    });
+
+    if (response.ok) {
+      const addedOrUpdatedClient = await response.json();
+      if (method === 'POST') {
+        setClients([...clients, addedOrUpdatedClient]);
+      } else {
+        setClients(clients.map(client => 
+          client.id === addedOrUpdatedClient.id ? addedOrUpdatedClient : client
+        ));
+      }
+      setNewClient({ name: '', email: '', phone: '', membershipStatus: 'Activo' });
+      setSelectedClient(null);
+      setIsModalOpen(false);
+    } else {
+      console.error('Error al agregar o editar el cliente');
+    }
+  };
+
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client);
+    setNewClient({ name: client.name, email: client.email, phone: client.phone, membershipStatus: client.membershipStatus });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClient = async (id: number) => {
+    const response = await fetch(`https://indoor-api.onrender.com/api/clients/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (response.ok) {
+      setClients(clients.filter((client) => client.id !== id));
+    } else {
+      console.error('Error al eliminar el cliente');
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -44,13 +91,77 @@ export function ClientsPage() {
               />
             </div>
           </div>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button 
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => setIsModalOpen(true)}
+          >
             <Plus className="w-5 h-5 mr-2" />
             Agregar Cliente
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-lg font-bold mb-4">Agregar Cliente</h2>
+              <form onSubmit={handleAddClient}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                  <input
+                    type="text"
+                    value={newClient.name}
+                    onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    value={newClient.email}
+                    onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                  <input
+                    type="text"
+                    value={newClient.phone}
+                    onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Estado de Membresía</label>
+                  <select
+                    value={newClient.membershipStatus}
+                    onChange={(e) => setNewClient({ ...newClient, membershipStatus: e.target.value })}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  >
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
+                </div>
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="mr-2 text-gray-500">
+                    Cancelar
+                  </button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Agregar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
@@ -58,13 +169,13 @@ export function ClientsPage() {
                   Nombre
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contacto
+                  Email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
+                  Teléfono
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bicicletas
+                  Estado de Membresía
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
@@ -79,27 +190,26 @@ export function ClientsPage() {
                       {client.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{client.email}</div>
-                    <div className="text-sm text-gray-500">{client.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                      ${client.membershipStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {client.membershipStatus}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.bikes} bikes
+                    {client.phone}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {client.membershipStatus}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-4">
+                    <button 
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      onClick={() => handleEditClient(client)}
+                    >
                       Editar
                     </button>
-                    <button className="text-blue-600 hover:text-blue-900 mr-4">
-                      Ver Bicicletas
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button 
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDeleteClient(client.id)}
+                    >
                       Eliminar
                     </button>
                   </td>
