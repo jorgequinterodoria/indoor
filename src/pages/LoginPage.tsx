@@ -20,9 +20,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Indoor Cycling Team
-          </h2>
+          <img src="/logo.png" alt="Logo" className="mx-auto mb-4 w-3/5" />
           <p className="mt-2 text-center text-sm text-gray-600">
             Ingresa a tu cuenta
           </p>
