@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Plus, Search, Dumbbell, Users, Trophy, X } from 'lucide-react';
+import Loader from '../components/Loader'
+import { Plus, Dumbbell, Users, Trophy, X } from 'lucide-react';
 import { DashboardCard } from '../components/DashboardCard';
 
 interface TrainingPlan {
@@ -8,41 +9,19 @@ interface TrainingPlan {
   name: string;
   description: string;
   duration: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'X12' | 'X6' | 'Estudiante' | "1 Clase";
   activeUsers: number;
-  status: 'active' | 'frozen';
+  status: 'Activo' | 'Congelado';
   price: number;
   sessionsPerWeek: number;
 }
 
-const trainingPlans: TrainingPlan[] = [
-  {
-    id: '1',
-    name: 'Resistencia para Principiantes',
-    description: 'Perfecto para aquellos que comienzan su viaje en ciclismo',
-    duration: 35,
-    difficulty: 'beginner',
-    activeUsers: 15,
-    status: 'active',
-    price: 99.99,
-    sessionsPerWeek: 3
-  },
-  {
-    id: '2',
-    name: 'HIIT Avanzado',
-    description: 'Entrenamiento de alta intensidad para ciclistas experimentados',
-    duration: 35,
-    difficulty: 'advanced',
-    activeUsers: 8,
-    status: 'active',
-    price: 149.99,
-    sessionsPerWeek: 5
-  }
-];
-
 export function TrainingPlansPage() {
+  const [trainingPlans, setTrainingPlans] = useState<TrainingPlan[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loading, setLoading] = useState(true)
   const [newPlan, setNewPlan] = useState({
+    id: '',
     name: '',
     description: '',
     difficulty: 'beginner',
@@ -50,25 +29,113 @@ export function TrainingPlansPage() {
     sessionsPerWeek: ''
   });
 
-  const handleCreatePlan = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchTrainingPlans = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch('https://indoor-api.onrender.com/api/trainingplans');
+        const data = await response.json();
+        setTrainingPlans(data);
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }finally {
+        setLoading(false); // Set loading to false after fetching data
+      }
+
+    };
+    fetchTrainingPlans();
+  }, []);
+
+  const handleCreatePlan = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically save the plan to your backend
-    console.log('Creating new plan:', {
+    const newPlanData = {
       ...newPlan,
-      duration: 35, // Fixed duration of 35 days
-      status: 'active',
-      activeUsers: 0
-    });
-    setShowCreateModal(false);
-    setNewPlan({
-      name: '',
-      description: '',
-      difficulty: 'beginner',
-      price: '',
-      sessionsPerWeek: ''
-    });
+      duration: 35, // Fijar duración a 35 días
+      status: 'Activo', // Cambiado a 'Activo' para coincidir con la interfaz
+      activeUsers: 0, // Fijar usuarios activos a 0
+      price: parseFloat(newPlan.price), // Asegurarse de que el precio sea un número
+      sessionsPerWeek: parseInt(newPlan.sessionsPerWeek, 10) // Asegurarse de que las sesiones por semana sean un número
+    };
+
+    try {
+      const response = await fetch('https://indoor-api.onrender.com/api/trainingplans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPlanData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear el plan');
+      }
+
+      const createdPlan = await response.json();
+      console.log('Plan creado:', createdPlan);
+      setTrainingPlans((prevPlans) => [...prevPlans, createdPlan]); // Agregar el nuevo plan a la lista
+    } catch (error) {
+      console.error('Error creando el plan:', error);
+    } finally {
+      setShowCreateModal(false);
+      setNewPlan({
+        id: '',
+        name: '',
+        description: '',
+        difficulty: 'beginner',
+        price: '',
+        sessionsPerWeek: ''
+      });
+    }
   };
 
+  const handleEditPlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedPlanData = {
+      ...newPlan,
+      duration: 35, // Fijar duración a 35 días
+      status: 'Activo', // Cambiado a 'Activo' para coincidir con la interfaz
+      activeUsers: 0, // Fijar usuarios activos a 0
+      price: parseFloat(newPlan.price), // Asegurarse de que el precio sea un número
+      sessionsPerWeek: parseInt(newPlan.sessionsPerWeek, 10) // Asegurarse de que las sesiones por semana sean un número
+    };
+
+    try {
+      const response = await fetch(`https://indoor-api.onrender.com/api/trainingplans/${newPlan.id}`, {
+        method: 'PUT', // Usar PUT para actualizar el plan
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedPlanData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar el plan');
+      }
+
+      const updatedPlan = await response.json();
+      console.log('Plan actualizado:', updatedPlan);
+      setTrainingPlans((prevPlans) => 
+        prevPlans.map((plan) => (plan.id === updatedPlan.id ? updatedPlan : plan)) // Actualizar el plan en la lista
+      );
+    } catch (error) {
+      console.error('Error actualizando el plan:', error);
+    } finally {
+      setShowCreateModal(false);
+      setNewPlan({
+        id: '',
+        name: '',
+        description: '',
+        difficulty: 'beginner',
+        price: '',
+        sessionsPerWeek: ''
+      });
+    }
+  };
+
+  if (loading) {
+    return <Loader />
+  }
+  
   return (
     <Layout>
       <div className="space-y-6">
@@ -77,34 +144,24 @@ export function TrainingPlansPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DashboardCard
             title="Planes Activos"
-            value="8"
+            value="4"
             icon={Dumbbell}
-            trend={{ value: 12, isPositive: true }}
           />
           <DashboardCard
             title="Usuarios Activos"
             value="45"
             icon={Users}
-            trend={{ value: 8, isPositive: true }}
           />
           <DashboardCard
             title="Tasa de Completación"
             value="78%"
             icon={Trophy}
-            trend={{ value: 5, isPositive: true }}
           />
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar planes de entrenamiento..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <button 
+
+          <button
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             onClick={() => setShowCreateModal(true)}
           >
@@ -120,14 +177,14 @@ export function TrainingPlansPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
                   <span className={`mt-1 px-2 py-1 text-xs font-semibold rounded-full
-                    ${plan.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                      plan.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'}`}>
+                    ${plan.difficulty === 'X6' ? 'bg-green-100 text-green-800' :
+                      plan.difficulty === 'X12' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'}`}>
                     {plan.difficulty}
                   </span>
                 </div>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full
-                  ${plan.status === 'active' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                  ${plan.status === 'Activo' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                   {plan.status}
                 </span>
               </div>
@@ -151,28 +208,36 @@ export function TrainingPlansPage() {
                 </div>
               </div>
               <div className="mt-4 flex space-x-3">
-                <button className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md">
+                <button
+                  className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setNewPlan({
+                      ...plan,
+                      price: plan.price.toString(),
+                      sessionsPerWeek: plan.sessionsPerWeek.toString()
+                    });
+                    setShowCreateModal(true);
+                  }}
+                >
                   Editar
-                </button>
-                <button className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md">
-                  Ver Detalles
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Create Plan Modal */}
+        {/* Create/Edit Plan Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Create New Training Plan</h2>
+                <h2 className="text-xl font-semibold">{newPlan.id ? 'Edit Training Plan' : 'Create New Training Plan'}</h2>
                 <button onClick={() => setShowCreateModal(false)}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleCreatePlan} className="space-y-4">
+              <form onSubmit={newPlan.id ? handleEditPlan : handleCreatePlan} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Name</label>
                   <input
@@ -241,7 +306,7 @@ export function TrainingPlansPage() {
                     type="submit"
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
                   >
-                    Create Plan
+                    {newPlan.id ? 'Update Plan' : 'Create Plan'}
                   </button>
                 </div>
               </form>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
+import Loader from '../components/Loader'
 import { Plus, Search } from 'lucide-react';
 
 interface Client {
@@ -15,12 +16,21 @@ export function ClientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', membershipStatus: 'Activo' });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchClients = async () => {
-      const response = await fetch('https://indoor-api.onrender.com/api/clients');
-      const data: Client[] = await response.json();
-      setClients(data);
+      setLoading(true)
+      try {
+        const response = await fetch('https://indoor-api.onrender.com/api/clients');
+        const data: Client[] = await response.json();
+        setClients(data);
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+
     };
 
     fetchClients();
@@ -29,8 +39,8 @@ export function ClientsPage() {
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = selectedClient ? 'PUT' : 'POST';
-    const url = selectedClient 
-      ? `https://indoor-api.onrender.com/api/clients/${selectedClient.id}` 
+    const url = selectedClient
+      ? `https://indoor-api.onrender.com/api/clients/${selectedClient.id}`
       : 'https://indoor-api.onrender.com/api/clients';
 
     const response = await fetch(url, {
@@ -46,7 +56,7 @@ export function ClientsPage() {
       if (method === 'POST') {
         setClients([...clients, addedOrUpdatedClient]);
       } else {
-        setClients(clients.map(client => 
+        setClients(clients.map(client =>
           client.id === addedOrUpdatedClient.id ? addedOrUpdatedClient : client
         ));
       }
@@ -75,6 +85,10 @@ export function ClientsPage() {
       console.error('Error al eliminar el cliente');
     }
   };
+  
+  if (loading) {
+    return <Loader />
+  }
 
   return (
     <Layout>
@@ -91,7 +105,7 @@ export function ClientsPage() {
               />
             </div>
           </div>
-          <button 
+          <button
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             onClick={() => setIsModalOpen(true)}
           >
@@ -200,13 +214,13 @@ export function ClientsPage() {
                     {client.membershipStatus}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
+                    <button
                       className="text-blue-600 hover:text-blue-900 mr-4"
                       onClick={() => handleEditClient(client)}
                     >
                       Editar
                     </button>
-                    <button 
+                    <button
                       className="text-red-600 hover:text-red-900"
                       onClick={() => handleDeleteClient(client.id)}
                     >

@@ -6,7 +6,7 @@ const Loader: React.FC = () => {
     <Layout>
     <div className="flex items-center justify-center h-screen">
       <div className="loader"></div>
-      <style jsx>{`
+      <style>{`
         .loader {
           border: 8px solid #f3f3f3; /* Light grey */
           border-top: 8px solid #3498db; /* Blue */

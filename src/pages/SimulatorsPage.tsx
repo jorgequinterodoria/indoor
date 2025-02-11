@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
+import Loader from '../components/Loader'
 import { Plus, Search } from 'lucide-react';
 
 interface Simulator {
@@ -9,17 +10,27 @@ interface Simulator {
   lastService: string; // Add other properties as needed
 }
 
+
 export function SimulatorsPage() {
   const [simulators, setSimulators] = useState<Simulator[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newSimulator, setNewSimulator] = useState({ model: '', status: '', lastService: '' });
   const [selectedSimulator, setSelectedSimulator] = useState<Simulator | null>(null);
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     const fetchSimulators = async () => {
-      const response = await fetch(`https://indoor-api.onrender.com/api/simulators`);
-      const data: Simulator[] = await response.json();
-      setSimulators(data);
+      setLoading(true);
+      try{
+        const response = await fetch(`https://indoor-api.onrender.com/api/simulators`);
+        const data: Simulator[] = await response.json();
+        setSimulators(data);
+      }
+      catch(error){
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false); 
+      }
     };
 
     fetchSimulators();
@@ -74,6 +85,9 @@ export function SimulatorsPage() {
       console.error('Error al eliminar el simulador');
     }
   };
+  if (loading) {
+    return <Loader />
+  }
 
   return (
     <Layout>

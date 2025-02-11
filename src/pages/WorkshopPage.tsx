@@ -205,7 +205,7 @@ useEffect(() => {
 
 
   if (loading) {
-    return <Loader />; // Use the Loader component while loading
+    return <Loader />
   }
 
   return (
