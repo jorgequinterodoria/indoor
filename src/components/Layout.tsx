@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Bike, 
   Users, 
@@ -21,6 +21,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const { logout } = useAuth();
   const currentPath = window.location.pathname;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
     { icon: BarChart3, label: 'Dashboard', path: '/' },
@@ -46,12 +47,25 @@ export function Layout({ children }: LayoutProps) {
     window.location.href = path;
   };
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className={`min-h-screen bg-gray-50 flex ${isMenuOpen ? 'overflow-hidden' : ''}`}>
+      {/* Botón de menú hamburguesa */}
+      <button onClick={toggleMenu} className="md:hidden p-2">
+        {/* Icono de menú hamburguesa */}
+        <span className="block w-6 h-1 bg-gray-600 mb-1"></span>
+        <span className="block w-6 h-1 bg-gray-600 mb-1"></span>
+        <span className="block w-6 h-1 bg-gray-600"></span>
+      </button>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-gray-900">Indoor Cycling Team</h1>
+      <aside className={`w-64 bg-white border-r border-gray-200 ${isMenuOpen ? 'block' : 'hidden'} md:block`}>
+        <div className="p-3">
+          <img src="/logo.png" alt="Logo" className="mx-auto mb-4 w-3/5" />
+          <h2 className="text-center">Software de gestión y Control</h2>
         </div>
         <nav className="mt-6">
           {menuItems.map((item) => (
@@ -70,7 +84,7 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1">
+      <div className={`flex-1 ${isMenuOpen ? 'overflow-hidden' : ''}`}>
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-6 py-4">
