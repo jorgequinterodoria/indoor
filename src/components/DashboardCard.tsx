@@ -1,10 +1,10 @@
 import React from 'react';
-import { DivideIcon as LucideIcon } from 'lucide-react';
+
 
 interface DashboardCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   trend?: {
     value: number;
     isPositive: boolean;
