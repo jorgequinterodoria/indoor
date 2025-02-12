@@ -105,6 +105,10 @@ export function InventoryPage() {
     }
   };
 
+  // Calculate low stock items and total value
+  const lowStockItemsCount = inventory.filter(item => item.stock < item.minStock).length;
+  const totalValue = '$' + inventory.reduce((acc, item) => acc + (item.price * item.stock), 0).toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   if (loading) {
     return <Loader />;
   }
@@ -116,8 +120,8 @@ export function InventoryPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DashboardCard title="Total de Artículos" value={inventory.length.toString()} icon={Package} />
-          <DashboardCard title="Artículos con Stock Bajo" value="12" icon={TrendingUp} />
-          <DashboardCard title="Valor Total" value="$12,458" icon={DollarSign} />
+          <DashboardCard title="Artículos con Stock Bajo" value={lowStockItemsCount.toString()} icon={TrendingUp} />
+          <DashboardCard title="Valor Total" value={totalValue} icon={DollarSign} />
         </div>
 
         <div className="flex justify-between items-center">
