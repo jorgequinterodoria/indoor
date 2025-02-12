@@ -1,62 +1,123 @@
-import { Plus, Search, Package, TrendingUp, DollarSign } from 'lucide-react';
-import { DashboardCard } from '../components/DashboardCard';
+import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
-
-const inventory = [
-  {
-    id: '1',
-    name: 'Cadena Pro',
-    category: 'Piezas',
-    stock: 25,
-    minStock: 10,
-    price: 89.99,
-    supplier: 'BikePartsInc'
-  },
-  {
-    id: '2',
-    name: 'Jersey Premium',
-    category: 'Ropa',
-    stock: 15,
-    minStock: 5,
-    price: 59.99,
-    supplier: 'SportWear Co'
-  },
-  {
-    id: '3',
-    name: 'Kit de Herramientas Multifunción',
-    category: 'Accesorios',
-    stock: 8,
-    minStock: 12,
-    price: 45.99,
-    supplier: 'ToolMaster'
-  }
-];
+import Loader from '../components/Loader';
+import { Plus, Search, Package, TrendingUp, DollarSign} from 'lucide-react';
+import { DashboardCard } from '../components/DashboardCard';
+import AddItemModal from '../components/AddItemModal';
+import EditItemModal from '../components/EditItemModal';
+import { Item } from '../types';
 
 export function InventoryPage() {
+  const [inventory, setInventory] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<{ id: string; nombre: string }[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('https://indoor-api.onrender.com/api/inventoryitems');
+        const data = await response.json();
+        setInventory(data);
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('https://indoor-api.onrender.com/api/inventorycategories');
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchInventory();
+    fetchCategories();
+  }, []);
+
+  const handleAddItem = async (newItem: Item) => {
+    try {
+      const response = await fetch('https://indoor-api.onrender.com/api/inventoryitems', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newItem),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al agregar el artículo');
+      }
+
+      const createdItem = await response.json();
+      setInventory((prev) => [...prev, createdItem]);
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error adding item:', error);
+    }
+  };
+
+  const handleEditItem = async (updatedItem: Item) => {
+    try {
+      const response = await fetch(`https://indoor-api.onrender.com/api/inventoryitems/${updatedItem.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedItem),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar el artículo');
+      }
+
+      const editedItem = await response.json();
+      setInventory((prev) =>
+        prev.map((item) => (item.id === editedItem.id ? editedItem : item))
+      );
+      setShowEditModal(false);
+    } catch (error) {
+      console.error('Error editing item:', error);
+    }
+  };
+
+  const handleDeleteItem = async (id: string) => {
+    try {
+      const response = await fetch(`https://indoor-api.onrender.com/api/inventoryitems/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el artículo');
+      }
+
+      setInventory((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestión de Inventario</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <DashboardCard
-            title="Total de Artículos"
-            value="234"
-            icon={Package}
-            trend={{ value: 8, isPositive: true }}
-          />
-          <DashboardCard
-            title="Artículos con Stock Bajo"
-            value="12"
-            icon={TrendingUp}
-            trend={{ value: 3, isPositive: false }}
-          />
-          <DashboardCard
-            title="Valor Total"
-            value="$12,458"
-            icon={DollarSign}
-            trend={{ value: 12, isPositive: true }}
-          />
+          <DashboardCard title="Total de Artículos" value={inventory.length.toString()} icon={Package} />
+          <DashboardCard title="Artículos con Stock Bajo" value="12" icon={TrendingUp} />
+          <DashboardCard title="Valor Total" value="$12,458" icon={DollarSign} />
         </div>
 
         <div className="flex justify-between items-center">
@@ -68,36 +129,22 @@ export function InventoryPage() {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="space-x-4">
-            <button className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md">
-              Exportar
-            </button>
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              <Plus className="w-5 h-5 mr-2" />
-              Agregar Artículo
-            </button>
-          </div>
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => setShowAddModal(true)}>
+            <Plus className="w-5 h-5 mr-2" />
+            Agregar Artículo
+          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Detalles del Artículo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Precio
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Proveedor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles del Artículo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock mínimo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -105,32 +152,25 @@ export function InventoryPage() {
                 <tr key={item.id}>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                    <div className="text-sm text-gray-500">{item.category}</div>
+                    <div className="text-sm text-gray-500">{categories.find(cat => cat.id === item.category)?.nombre}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {item.stock} unidades
-                    </div>
-                    <div className={`text-sm ${item.stock < item.minStock ? 'text-red-600' : 'text-gray-500'}`}>
-                      Mín: {item.minStock}
-                    </div>
+                    <div className="text-sm text-gray-900">{item.stock} unidades</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      ${item.price.toLocaleString('es-ES')}
-                    </div>
+                    <div className="text-sm text-gray-900">{item.minStock} unidades</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900">${item.price.toLocaleString('es-ES')}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">{item.supplier}</div>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">
+                    <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => { setSelectedItem(item); setShowEditModal(true); }}>
                       Editar
                     </button>
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">
-                      Reponer
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteItem(item.id)}>
                       Eliminar
                     </button>
                   </td>
@@ -139,6 +179,9 @@ export function InventoryPage() {
             </tbody>
           </table>
         </div>
+
+        <AddItemModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddItem} categories={categories} />
+        <EditItemModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} item={selectedItem} onEdit={handleEditItem} categories={categories} />
       </div>
     </Layout>
   );
