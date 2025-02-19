@@ -23,10 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Llamada a la API para verificar las credenciales
     const response = await fetch(`https://indoor-api.onrender.com/api/users`);
     const users = await response.json();
-  
-    const userData = users.find((userData: { user: string; pass: string; rol: string }) => 
-      userData.user === user && userData.pass === password
+    const userData = users.find((userData: { username: string; pass: string; rol: string }) => 
+      userData.username === user && userData.pass === password
     );
+    console.log("usuario", userData);
   
     if (userData) {
       const { id, nombre, rol } = userData;
