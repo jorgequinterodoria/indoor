@@ -13,7 +13,7 @@ interface TrainingPlan {
   activeUsers: number;
   status: 'Activo' | 'Congelado';
   price: number;
-  sessionsPerWeek: number;
+  sessionsperweek: number;
 }
 
 export function TrainingPlansPage() {
@@ -26,7 +26,7 @@ export function TrainingPlansPage() {
     description: '',
     difficulty: 'beginner',
     price: '',
-    sessionsPerWeek: ''
+    sessionsperweek: ''
   });
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function TrainingPlansPage() {
       status: 'Activo', // Cambiado a 'Activo' para coincidir con la interfaz
       activeUsers: 0, // Fijar usuarios activos a 0
       price: parseFloat(newPlan.price), // Asegurarse de que el precio sea un número
-      sessionsPerWeek: parseInt(newPlan.sessionsPerWeek, 10) // Asegurarse de que las sesiones por semana sean un número
+      sessionsperweek: parseInt(newPlan.sessionsperweek, 10) // Asegurarse de que las sesiones por semana sean un número
     };
 
     try {
@@ -83,7 +83,7 @@ export function TrainingPlansPage() {
         description: '',
         difficulty: 'beginner',
         price: '',
-        sessionsPerWeek: ''
+        sessionsperweek: ''
       });
     }
   };
@@ -96,7 +96,7 @@ export function TrainingPlansPage() {
       status: 'Activo', // Cambiado a 'Activo' para coincidir con la interfaz
       activeUsers: 0, // Fijar usuarios activos a 0
       price: parseFloat(newPlan.price), // Asegurarse de que el precio sea un número
-      sessionsPerWeek: parseInt(newPlan.sessionsPerWeek, 10) // Asegurarse de que las sesiones por semana sean un número
+      sessionsperweek: parseInt(newPlan.sessionsperweek, 10) // Asegurarse de que las sesiones por semana sean un número
     };
 
     try {
@@ -127,7 +127,7 @@ export function TrainingPlansPage() {
         description: '',
         difficulty: 'beginner',
         price: '',
-        sessionsPerWeek: ''
+        sessionsperweek: ''
       });
     }
   };
@@ -178,8 +178,8 @@ export function TrainingPlansPage() {
                   <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
                   <span className={`mt-1 px-2 py-1 text-xs font-semibold rounded-full
                     ${plan.difficulty === 'X6' ? 'bg-green-100 text-green-800' :
-                      plan.difficulty === 'X12' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'}`}>
+                      plan.difficulty === 'X12' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'}`}>
                     {plan.difficulty}
                   </span>
                 </div>
@@ -196,7 +196,7 @@ export function TrainingPlansPage() {
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>Sesiones/Semana:</span>
-                  <span>{plan.sessionsPerWeek}</span>
+                  <span>{plan.sessionsperweek}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>Precio:</span>
@@ -215,7 +215,7 @@ export function TrainingPlansPage() {
                     setNewPlan({
                       ...plan,
                       price: plan.price.toString(),
-                      sessionsPerWeek: plan.sessionsPerWeek.toString()
+                      sessionsperweek: plan.sessionsperweek.toString()
                     });
                     setShowCreateModal(true);
                   }}
@@ -232,14 +232,14 @@ export function TrainingPlansPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">{newPlan.id ? 'Edit Training Plan' : 'Create New Training Plan'}</h2>
+                <h2 className="text-xl font-semibold">{newPlan.id ? 'Editar Plan' : 'Crear Nuevo Plan'}</h2>
                 <button onClick={() => setShowCreateModal(false)}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={newPlan.id ? handleEditPlan : handleCreatePlan} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className="block text-sm font-medium text-gray-700">Nombre</label>
                   <input
                     type="text"
                     required
@@ -249,7 +249,7 @@ export function TrainingPlansPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <label className="block text-sm font-medium text-gray-700">Descripción</label>
                   <textarea
                     required
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -259,19 +259,20 @@ export function TrainingPlansPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Difficulty</label>
+                  <label className="block text-sm font-medium text-gray-700">Dificultad</label>
                   <select
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     value={newPlan.difficulty}
                     onChange={(e) => setNewPlan({ ...newPlan, difficulty: e.target.value as any })}
                   >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                    <option value="X1">X1</option>
+                    <option value="X6">X6</option>
+                    <option value="Estudiante">Estudiante</option>
+                    <option value="X12">X12</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Price ($)</label>
+                  <label className="block text-sm font-medium text-gray-700">Precio ($)</label>
                   <input
                     type="number"
                     required
@@ -283,15 +284,15 @@ export function TrainingPlansPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Sessions per Week</label>
+                  <label className="block text-sm font-medium text-gray-700">Sesiones por mes</label>
                   <input
                     type="number"
                     required
                     min="1"
-                    max="7"
+                    max="12"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    value={newPlan.sessionsPerWeek}
-                    onChange={(e) => setNewPlan({ ...newPlan, sessionsPerWeek: e.target.value })}
+                    value={newPlan.sessionsperweek}
+                    onChange={(e) => setNewPlan({ ...newPlan, sessionsperweek: e.target.value })}
                   />
                 </div>
                 <div className="flex justify-end space-x-3 mt-6">
@@ -300,13 +301,13 @@ export function TrainingPlansPage() {
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md"
                     onClick={() => setShowCreateModal(false)}
                   >
-                    Cancel
+                    Cancelar
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
                   >
-                    {newPlan.id ? 'Update Plan' : 'Create Plan'}
+                    {newPlan.id ? 'Actualizar Plan' : 'Crear Plan'}
                   </button>
                 </div>
               </form>
