@@ -7,7 +7,7 @@ interface Simulator {
   id: number;
   model: string;
   status: string;
-  lastService: string; // Add other properties as needed
+  lastservice: string; // Add other properties as needed
 }
 
 
@@ -201,7 +201,7 @@ export function SimulatorsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(simulator.lastService).toLocaleDateString('es-ES')}
+                    {new Date(simulator.lastservice.replace(' ', 'T')).toLocaleDateString('es-ES')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 

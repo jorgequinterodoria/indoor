@@ -34,7 +34,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: ShoppingCart, label: 'Almacén', path: '/pos' },
     { icon: UserCog, label: 'Empleados', path: '/employees' },
     { icon: Bike, label: 'Historial de Bicicletas', path: '/bike-history' },
-    { icon: Bike, label: 'CRUD de Bicicletas', path: '/bike-crud' },
+    { icon: Bike, label: 'Bicicletas', path: '/bike-crud' },
   ];
 
   const handleLogout = () => {

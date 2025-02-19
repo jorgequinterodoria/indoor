@@ -8,13 +8,13 @@ interface Client {
   name: string;
   email: string;
   phone: string;
-  membershipStatus: 'Activo' | 'Inactivo';
+  membershipstatus: 'Activo' | 'Inactivo';
 }
 
 export function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', membershipStatus: 'Activo' });
+  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', membershipstatus: 'Activo' });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true)
 
@@ -60,7 +60,7 @@ export function ClientsPage() {
           client.id === addedOrUpdatedClient.id ? addedOrUpdatedClient : client
         ));
       }
-      setNewClient({ name: '', email: '', phone: '', membershipStatus: 'Activo' });
+      setNewClient({ name: '', email: '', phone: '', membershipstatus: 'Activo' });
       setSelectedClient(null);
       setIsModalOpen(false);
     } else {
@@ -70,7 +70,7 @@ export function ClientsPage() {
 
   const handleEditClient = (client: Client) => {
     setSelectedClient(client);
-    setNewClient({ name: client.name, email: client.email, phone: client.phone, membershipStatus: client.membershipStatus });
+    setNewClient({ name: client.name, email: client.email, phone: client.phone, membershipstatus: client.membershipStatus });
     setIsModalOpen(true);
   };
 
@@ -153,8 +153,8 @@ export function ClientsPage() {
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">Estado de Membresía</label>
                   <select
-                    value={newClient.membershipStatus}
-                    onChange={(e) => setNewClient({ ...newClient, membershipStatus: e.target.value })}
+                    value={newClient.membershipstatus}
+                    onChange={(e) => setNewClient({ ...newClient, membershipstatus: e.target.value })}
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                   >
@@ -211,7 +211,7 @@ export function ClientsPage() {
                     {client.phone}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {client.membershipStatus}
+                    {client.membershipstatus}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
